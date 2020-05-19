@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: my-ip
+    networking.gke.io/managed-certificates: my-domain-certificate,www-my-domain-certificate
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  rules:
+  - host: www.my-domain.cl
+    http: &http_landing
+      paths:
+      - backend:
+          serviceName: my-domain-lb
+          servicePort: 80
+  - host: my-domain.cl
+    http: *http_landing
