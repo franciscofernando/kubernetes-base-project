@@ -1,0 +1,41 @@
+stages:
+  - build
+  - deploy
+
+Build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - apk add --update make ca-certificates openssl python jq
+    - update-ca-certificates
+    - echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+    - wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+    - tar zxvf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
+    - google-cloud-sdk/bin/gcloud --quiet components update
+    - google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+    - /bin/sh build.sh 1
+    - docker login -u _json_key --password-stdin https://gcr.io < ${HOME}/gcloud-service-key.json
+  script:
+    - docker build --pull -t "gcr.io/$GCLOUD_PROJECT_ID/$CI_PROJECT_NAME-$CI_COMMIT_BRANCH":"$CI_COMMIT_SHA" .
+    - docker push "gcr.io/$GCLOUD_PROJECT_ID/$CI_PROJECT_NAME-$CI_COMMIT_BRANCH"
+  variables:
+    DOCKER_DRIVER: overlay
+    DOCKER_TLS_CERTDIR: ""
+  only:
+    - testing
+
+Deploy:
+  stage: deploy
+  image: google/cloud-sdk:alpine
+  before_script:
+    - echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+    - gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+    - apk --update add openjdk7-jre
+    - gcloud components install app-engine-java kubectl
+    - gcloud container clusters get-credentials $GCLOUD_CLUSTER_NAME --zone us-central1-c --project $GCLOUD_PROJECT_ID
+  script:
+    - kubectl set image deployment/$CI_PROJECT_NAME-$CI_COMMIT_BRANCH $CI_PROJECT_NAME-$CI_COMMIT_BRANCH="gcr.io/$GCLOUD_PROJECT_ID/$CI_PROJECT_NAME-$CI_COMMIT_BRANCH":"$CI_COMMIT_SHA"
+  only:
+    - testing
