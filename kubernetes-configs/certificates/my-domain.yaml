@@ -5,11 +5,3 @@ metadata:
 spec:
   domains:
     - my-domain.cl
----
-apiVersion: networking.gke.io/v1beta1
-kind: ManagedCertificate
-metadata:
-  name: www-my-domain-certificate
-spec:
-  domains:
-    - www.my-domain.cl

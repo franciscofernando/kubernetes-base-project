@@ -30,11 +30,10 @@ app.get('/show', (req, res) => {
 });
 
 app.get('/collapse', (req, res) => {
-	let x = 0.0001;
-	for (let i = 0; i <= 1000000; i++) {
-		x += Math.sqrt(x);
+	let x = 0;
+	while (true) {
+		x += 1000000;
 	}
-	res.status(200).end();
 });
 
 app.listen(port, () => {
