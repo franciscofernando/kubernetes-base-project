@@ -35,4 +35,4 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 5
           failureThreshold: 5
-          successThreshold: 2
+          successThreshold: 1

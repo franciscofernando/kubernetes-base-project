@@ -18,14 +18,22 @@ app.get('/healthy', (req, res) => {
 });
 
 app.get('/hide', (req, res) => {
-	fs.rename(envPath, envvPath);
+	fs.renameSync(envPath, envvPath);
 	console.log('.env hidden');
 	res.status(200).end();
 });
 
 app.get('/show', (req, res) => {
-	fs.rename(envvPath, envPath);
+	fs.renameSync(envvPath, envPath);
 	console.log('.env visible');
+	res.status(200).end();
+});
+
+app.get('/collapse', (req, res) => {
+	let x = 0.0001;
+	for (let i = 0; i <= 1000000; i++) {
+		x += Math.sqrt(x);
+	}
 	res.status(200).end();
 });
 
